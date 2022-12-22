@@ -188,6 +188,9 @@ def calculate_area(client_socket, request):
         return internal_server_error(client_socket, 'Not numeric value for height or width')
 
     area = str((int(height) * int(width)) / 2)
+    # check if area is float of int
+    if area.endswith('.0'):
+        area = area[:-2]
     return ok(client_socket, data=area.encode())
 
 
