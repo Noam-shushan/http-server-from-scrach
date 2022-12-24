@@ -10,6 +10,8 @@ Author: Noam Shushan
 import datetime
 import os
 import socket
+import re
+
 
 # Constants:
 IP = '0.0.0.0'
@@ -181,17 +183,29 @@ def calculate_area(client_socket, request):
     if not len(parameters) == 2:
         return internal_server_error(client_socket, f'Many or less parameters, expected 2, got {len(parameters)}')
 
-    height = parameters[0].split('=')[-1]
-    width = parameters[1].split('=')[-1]
+    height_str = parameters[0].split('=')[-1]
+    width_str = parameters[1].split('=')[-1]
 
-    if not height.isnumeric() or not width.isnumeric():
-        return internal_server_error(client_socket, 'Not numeric value for height or width')
+    height = get_real_number(height_str)
+    width = get_real_number(width_str)
+    if height is None or width is None:
+        return internal_server_error(client_socket, 'Not real number value for height or width')
 
-    area = str((int(height) * int(width)) / 2)
+    area = str((height * width) / 2)
     # check if area is float of int
     if area.endswith('.0'):
         area = area[:-2]
     return ok(client_socket, data=area.encode())
+
+
+def get_real_number(num_str):
+    if not re.match(r'^-?\d+\.?\d*$', num_str):
+        return None
+    try:
+        result = int(num_str)
+    except ValueError:
+        result = float(num_str)
+    return result
 
 
 def get_file_data(filename):
